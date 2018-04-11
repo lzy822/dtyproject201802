@@ -32,9 +32,25 @@ public class License_main extends AppCompatActivity {
     Toolbar tb;
     String password;
     RadioGroup radioGroup;
-    //RadioButton week, halfyear, wholeyear;
     int deltaTime;
     private static final String TAG = "License_main";
+
+    //判断日期
+    private boolean verifyDate(String endDate){
+        SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日");
+        Date nowDate = new Date(System.currentTimeMillis());
+        Date endTimeDate = null;
+        try {
+            if (!endDate.isEmpty()){
+                endTimeDate = df.parse(endDate);
+            }
+        }catch (ParseException e){
+            Toast.makeText(License_main.this, "发生错误, 请联系我们!", Toast.LENGTH_LONG).show();
+        }
+        if (nowDate.getTime() > endTimeDate.getTime()){
+            return false;
+        }else return true;
+    }
 
     //计算识别码
     private String getPassword(String deviceId){
@@ -94,27 +110,6 @@ public class License_main extends AppCompatActivity {
                 }
             }
         });
-        /*week = (RadioButton) findViewById(R.id.week);
-        week.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                deltaTime = 7;
-            }
-        });
-        halfyear = (RadioButton) findViewById(R.id.halfyear);
-        halfyear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                deltaTime = 180;
-            }
-        });
-        wholeyear = (RadioButton) findViewById(R.id.wholeyear);
-        wholeyear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                deltaTime = 366;
-            }
-        });*/
         LitePal.getDatabase();
         password = "";
         editText = (EditText) findViewById(R.id.inputic_edit);
@@ -139,14 +134,16 @@ public class License_main extends AppCompatActivity {
                     if (str.length() == 15){
                         try {
                             long test = Long.valueOf(str);
-                            password = getPassword(str);
-                            textView.setText("授权码为: " + password + "(长按复制)");
                             for (int i = 0; i < size; i++){
-                                if (str.contentEquals(lsts.get(i).getImei())){
+                                if (str.contentEquals(lsts.get(i).getImei()) & verifyDate(lsts.get(i).getEndDate())){
                                     isExist = true;
+                                    password = lsts.get(i).getPassword();
+                                    break;
                                 }
                             }
                             if (!isExist){
+                                password = getPassword(str);
+                                textView.setText("授权码为: " + password + "(长按复制)");
                                 licenses license = new licenses();
                                 license.setImei(str);
                                 license.setPassword(password);
@@ -160,19 +157,23 @@ public class License_main extends AppCompatActivity {
                                     license.setEndDate(getDateStr(startTime, 366));
                                 }
                                 license.save();
+                            }else {
+                                textView.setText("授权码为: " + password + "(长按复制)");
                             }
                         }catch (NumberFormatException e){
                             Toast.makeText(License_main.this, "请输入正确的设备码", Toast.LENGTH_LONG).show();
                         }
                     }else {
-                        password = getPassword(str);
-                        textView.setText("授权码为: " + password + "(长按复制)");
                         for (int i = 0; i < size; i++){
-                            if (password.contentEquals(lsts.get(i).getPassword())){
+                            if (str.contentEquals(lsts.get(i).getImei()) & verifyDate(lsts.get(i).getEndDate())){
                                 isExist = true;
+                                password = lsts.get(i).getPassword();
+                                break;
                             }
                         }
                         if (!isExist){
+                            password = getPassword(str);
+                            textView.setText("授权码为: " + password + "(长按复制)");
                             licenses license = new licenses();
                             license.setImei(str);
                             license.setPassword(password);
@@ -186,6 +187,8 @@ public class License_main extends AppCompatActivity {
                                 license.setEndDate(getDateStr(startTime, 366));
                             }
                             license.save();
+                        }else {
+                            textView.setText("授权码为: " + password + "(长按复制)");
                         }
                     }
                 }else Toast.makeText(License_main.this, "请输入正确的设备码", Toast.LENGTH_LONG).show();
