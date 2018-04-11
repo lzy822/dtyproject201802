@@ -15,6 +15,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.litepal.LitePal;
+import org.litepal.crud.DataSupport;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
 public class License_main extends AppCompatActivity {
     EditText editText;
     Button button1;
@@ -35,27 +42,59 @@ public class License_main extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_license_main);
+        LitePal.getDatabase();
         password = "";
         editText = (EditText) findViewById(R.id.inputic_edit);
         button1 = (Button) findViewById(R.id.ok_button);
         textView = (TextView) findViewById(R.id.ic_text);
         tb = (Toolbar) findViewById(R.id.toolbar1);
+        setSupportActionBar(tb);
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String str = editText.getText().toString();
                 if (str.length() >= 5 & str.length() <= 6){
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+                    Date date = new Date(System.currentTimeMillis());
+                    String time = simpleDateFormat.format(date);
+                    List<licenses> lsts = DataSupport.findAll(licenses.class);
+                    int size = lsts.size();
+                    boolean isExist = false;
                     if (str.length() == 6){
                         try {
                             long test = Long.valueOf(str);
                             password = getPassword(str);
                             textView.setText("授权码为: " + password + "(长按复制)");
+                            for (int i = 0; i < size; i++){
+                                if (password.contentEquals(lsts.get(i).getPassword())){
+                                    isExist = true;
+                                }
+                            }
+                            if (!isExist){
+                            licenses license = new licenses();
+                            license.setImei(str);
+                            license.setPassword(password);
+                            license.setRegisterDate(time);
+                            license.save();
+                            }
                         }catch (NumberFormatException e){
                             Toast.makeText(License_main.this, "请输入正确的设备码", Toast.LENGTH_LONG).show();
                         }
                     }else {
                         password = getPassword(str);
                         textView.setText("授权码为: " + password + "(长按复制)");
+                        for (int i = 0; i < size; i++){
+                            if (password.contentEquals(lsts.get(i).getPassword())){
+                                isExist = true;
+                            }
+                        }
+                        if (!isExist){
+                            licenses license = new licenses();
+                            license.setImei(str);
+                            license.setPassword(password);
+                            license.setRegisterDate(time);
+                            license.save();
+                        }
                     }
                 }else Toast.makeText(License_main.this, "请输入正确的设备码", Toast.LENGTH_LONG).show();
             }
@@ -77,6 +116,7 @@ public class License_main extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.maintoolbar, menu);
+        menu.findItem(R.id.back).setVisible(false);
         return true;
     }
 
@@ -84,6 +124,8 @@ public class License_main extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
             case  R.id.query:
+                Intent intent = new Intent(License_main.this, License_show.class);
+                startActivity(intent);
                 break;
         }
         return true;

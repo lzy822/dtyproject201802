@@ -2,8 +2,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/back"
+        android:title="返回"
+        app:showAsAction="always"/>
+    <item
         android:id="@+id/query"
         android:title="查看授权信息"
         app:showAsAction="never"/>
+
 
 </menu>
