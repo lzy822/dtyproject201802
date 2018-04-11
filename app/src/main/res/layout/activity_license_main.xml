@@ -45,6 +45,39 @@
                     android:layout_weight="1"
                     android:text="确认"/>
             </LinearLayout>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="请选择授权时限: "/>
+                <RadioGroup
+                    android:id="@+id/radioGroup"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="left">
+                    <RadioButton
+                        android:id="@+id/week"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1 周"
+                        android:checked="true"/>
+                    <RadioButton
+                        android:id="@+id/halfyear"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="半 年" />
+                    <RadioButton
+                        android:id="@+id/wholeyear"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1 年" />
+                </RadioGroup>
+            </LinearLayout>
             <TextView
                 android:id="@+id/ic_text"
                 android:layout_width="match_parent"

@@ -15,9 +15,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import static android.content.ContentValues.TAG;
@@ -100,13 +104,31 @@ public class license_testAdapter extends RecyclerView.Adapter<license_testAdapte
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         license_test license = mlicenseList.get(position);
-        String str = "设备码为: " + license.getImei() + "\n" + "授权码为: " + license.getPassword() + "\n" + "授权时间: " + license.getRegisterDate();
+        String str = "设备码为: " + license.getImei() + "\n" + "授权码为: " + license.getPassword() + "\n" + "授权时间: " + license.getRegisterDate()
+                + "\n" + "开始时间: " + license.getStartDate() + "\n" + "结束时间: " + license.getEndDate();
+        if (verifyDate(license.getEndDate())){
+            holder.cardView.setCardBackgroundColor(Color.GREEN);
+        }else holder.cardView.setCardBackgroundColor(Color.RED);
         holder.licenseTxt.setText(str);
 
 
     }
 
-
+    private boolean verifyDate(String endDate){
+        SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日");
+        Date nowDate = new Date(System.currentTimeMillis());
+        Date endTimeDate = null;
+        try {
+            if (!endDate.isEmpty()){
+                endTimeDate = df.parse(endDate);
+            }
+        }catch (ParseException e){
+            Toast.makeText(mContext, "发生错误, 请联系我们!", Toast.LENGTH_LONG).show();
+        }
+        if (nowDate.getTime() > endTimeDate.getTime()){
+            return false;
+        }else return true;
+    }
 
     @Override
     public int getItemCount() {
