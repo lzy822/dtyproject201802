@@ -1,8 +1,8 @@
 package com.android.license;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class License_show extends AppCompatActivity {
+public class License_show_single extends AppCompatActivity {
     List<license_test> license_tests;
     List<licenses> lists;
     Toolbar toolbar;
@@ -29,12 +29,14 @@ public class License_show extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_license_show);
+        setContentView(R.layout.activity_license_show_single);
+        Intent intent = getIntent();
+        String deviceId = intent.getStringExtra("deviceId");
         license_tests = new ArrayList<license_test>();
         lists = new ArrayList<licenses>();
-        toolbar = (Toolbar) findViewById(R.id.toolbar2);
+        toolbar = (Toolbar) findViewById(R.id.toolbar3);
         setSupportActionBar(toolbar);
-        lists = DataSupport.findAll(licenses.class);
+        lists = DataSupport.where("imei = ?", deviceId).find(licenses.class);
         int size = lists.size();
         int isOk = 0;
         for (int i = 0; i < size; i++){
@@ -44,7 +46,7 @@ public class License_show extends AppCompatActivity {
                 license_tests.add(licenseTest);
             }
         }
-        getSupportActionBar().setTitle("共" + Integer.toString(size) + "条, " + Integer.toString(isOk) + "条有效");
+        getSupportActionBar().setTitle("共" + Integer.toString(size) + "条");
         for (int i = 0; i < size; i++){
             //license_test licenseTest = new license_test(lists.get(i).getImei(), lists.get(i).getPassword(), lists.get(i).getRegisterDate());
             if (!verifyDate(lists.get(i).getEndDate())) {
@@ -52,7 +54,7 @@ public class License_show extends AppCompatActivity {
                 license_tests.add(licenseTest);
             }
         }
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view1);
         layoutManager = new GridLayoutManager(this,1);
         recyclerView.setLayoutManager(layoutManager);
         adapter = new license_testAdapter(license_tests);

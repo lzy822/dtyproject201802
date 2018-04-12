@@ -18,6 +18,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".License_show"></activity>
+        <activity android:name=".License_show_single"></activity>
     </application>
 
 </manifest>

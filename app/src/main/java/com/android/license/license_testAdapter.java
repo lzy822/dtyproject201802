@@ -1,6 +1,7 @@
 package com.android.license;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -65,13 +66,15 @@ public class license_testAdapter extends RecyclerView.Adapter<license_testAdapte
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int position = holder.getAdapterPosition();
-                license_test license = mlicenseList.get(position);
-                mOnItemClick.onItemClick(v, position);
-                /*
-                Intent intent = new Intent(mContext, MainInterface.class);
-                intent.putExtra("num", license.getM_num());
-                mContext.startActivity(intent);*/
+                //if (mOnItemClick != null){
+                    int position = holder.getAdapterPosition();
+                    license_test license = mlicenseList.get(position);
+                    //mOnItemClick.onItemClick(v, position);
+                //}
+
+                Intent intent = new Intent(mContext, License_show_single.class);
+                intent.putExtra("deviceId", license.getImei());
+                mContext.startActivity(intent);
             }
         });
         holder.cardView.setOnLongClickListener(new View.OnLongClickListener() {

@@ -36,23 +36,6 @@ public class License_main extends AppCompatActivity {
     int deltaTime;
     private static final String TAG = "License_main";
 
-    //判断日期
-    private boolean verifyDate(String endDate){
-        SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日");
-        Date nowDate = new Date(System.currentTimeMillis());
-        Date endTimeDate = null;
-        try {
-            if (!endDate.isEmpty()){
-                endTimeDate = df.parse(endDate);
-            }
-        }catch (ParseException e){
-            Toast.makeText(License_main.this, "发生错误, 请联系我们!", Toast.LENGTH_LONG).show();
-        }
-        if (nowDate.getTime() > endTimeDate.getTime()){
-            return false;
-        }else return true;
-    }
-
     //计算识别码
     private String getPassword(String deviceId){
         String password;
@@ -258,5 +241,22 @@ public class License_main extends AppCompatActivity {
                 break;
         }
         return true;
+    }
+
+    //核对当前日期
+    private boolean verifyDate(String endDate){
+        SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日");
+        Date nowDate = new Date(System.currentTimeMillis());
+        Date endTimeDate = null;
+        try {
+            if (!endDate.isEmpty()){
+                endTimeDate = df.parse(endDate);
+            }
+        }catch (ParseException e){
+            Toast.makeText(this, "发生错误, 请联系我们!", Toast.LENGTH_LONG).show();
+        }
+        if (nowDate.getTime() > endTimeDate.getTime()){
+            return false;
+        }else return true;
     }
 }
