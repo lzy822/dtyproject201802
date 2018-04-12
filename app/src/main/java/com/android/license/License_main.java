@@ -22,6 +22,7 @@ import org.litepal.crud.DataSupport;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -150,11 +151,11 @@ public class License_main extends AppCompatActivity {
                                 license.setRegisterDate(time);
                                 license.setStartDate(startTime);
                                 if (deltaTime == 7){
-                                    license.setEndDate(getDateStr(startTime, 7));
+                                    license.setEndDate(datePlus(startTime, 7));
                                 }else if (deltaTime == 180){
-                                    license.setEndDate(getDateStr(startTime, 180));
+                                    license.setEndDate(datePlus(startTime, 180));
                                 }else if (deltaTime == 366){
-                                    license.setEndDate(getDateStr(startTime, 366));
+                                    license.setEndDate(datePlus(startTime, 366));
                                 }
                                 license.save();
                             }else {
@@ -180,11 +181,11 @@ public class License_main extends AppCompatActivity {
                             license.setRegisterDate(time);
                             license.setStartDate(startTime);
                             if (deltaTime == 7){
-                                license.setEndDate(getDateStr(startTime, 7));
+                                license.setEndDate(datePlus(startTime, 7));
                             }else if (deltaTime == 180){
-                                license.setEndDate(getDateStr(startTime, 180));
+                                license.setEndDate(datePlus(startTime, 180));
                             }else if (deltaTime == 366){
-                                license.setEndDate(getDateStr(startTime, 366));
+                                license.setEndDate(datePlus(startTime, 366));
                             }
                             license.save();
                         }else {
@@ -222,6 +223,22 @@ public class License_main extends AppCompatActivity {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日");
         String dateOk = simpleDateFormat.format(newDate2);
         return dateOk;
+    }
+
+    public static String datePlus(String day, int days) {
+        SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日");
+        Date base = null;
+        try {
+            base = df.parse(day);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(base);
+        cal.add(Calendar.DATE, days);
+        String dateOK = df.format(cal.getTime());
+
+        return dateOK;
     }
 
     @Override
