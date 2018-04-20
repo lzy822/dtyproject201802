@@ -105,7 +105,7 @@ public class License_main extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String str = editText.getText().toString();
-                if (str.length() >= 14 & str.length() <= 15){
+                if (str.length() >= 14 & str.length() <= 16){
                     SimpleDateFormat df1 = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
                     SimpleDateFormat df2 = new SimpleDateFormat("yyyy年MM月dd日");
                     Date date = new Date(System.currentTimeMillis());
@@ -146,6 +146,33 @@ public class License_main extends AppCompatActivity {
                             }
                         }catch (NumberFormatException e){
                             Toast.makeText(License_main.this, "请输入正确的设备码", Toast.LENGTH_LONG).show();
+                        }
+                    }else if (str.length() == 14){
+                        for (int i = 0; i < size; i++){
+                            if (str.contentEquals(lsts.get(i).getImei()) & verifyDate(lsts.get(i).getEndDate())){
+                                isExist = true;
+                                password = lsts.get(i).getPassword();
+                                break;
+                            }
+                        }
+                        if (!isExist){
+                            password = getPassword(str);
+                            textView.setText("授权码为: " + password + "(长按复制)");
+                            licenses license = new licenses();
+                            license.setImei(str);
+                            license.setPassword(password);
+                            license.setRegisterDate(time);
+                            license.setStartDate(startTime);
+                            if (deltaTime == 7){
+                                license.setEndDate(datePlus(startTime, 7));
+                            }else if (deltaTime == 180){
+                                license.setEndDate(datePlus(startTime, 180));
+                            }else if (deltaTime == 366){
+                                license.setEndDate(datePlus(startTime, 366));
+                            }
+                            license.save();
+                        }else {
+                            textView.setText("授权码为: " + password + "(长按复制)");
                         }
                     }else {
                         for (int i = 0; i < size; i++){
