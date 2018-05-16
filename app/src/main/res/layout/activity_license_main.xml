@@ -67,6 +67,16 @@
                         android:text="1 周"
                         android:checked="true"/>
                     <RadioButton
+                        android:id="@+id/onemonth"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1 月" />
+                    <RadioButton
+                        android:id="@+id/threemonth"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3 月" />
+                    <RadioButton
                         android:id="@+id/halfyear"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -76,6 +86,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="1 年" />
+                    <RadioButton
+                        android:id="@+id/forever"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="永 久" />
                 </RadioGroup>
             </LinearLayout>
             <TextView

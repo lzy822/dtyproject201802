@@ -47,6 +47,12 @@ public class License_main extends AppCompatActivity {
             password = password + "X";
         }else if (deltaTime == 366){
             password = password + "y";
+        }else if (deltaTime == 30){
+            password = password + "g";
+        }else if (deltaTime == 90){
+            password = password + "G";
+        }else if (deltaTime == 3660){
+            password = password + "j";
         }
         return password;
     }
@@ -85,11 +91,20 @@ public class License_main extends AppCompatActivity {
                     case R.id.week:
                         deltaTime = 7;
                         break;
+                    case R.id.onemonth:
+                        deltaTime = 30;
+                        break;
+                    case R.id.threemonth:
+                        deltaTime = 90;
+                        break;
                     case R.id.halfyear:
                         deltaTime = 180;
                         break;
                     case R.id.wholeyear:
                         deltaTime = 366;
+                        break;
+                    case R.id.forever:
+                        deltaTime = 3660;
                         break;
                 }
             }
@@ -139,6 +154,12 @@ public class License_main extends AppCompatActivity {
                                     license.setEndDate(datePlus(startTime, 180));
                                 }else if (deltaTime == 366){
                                     license.setEndDate(datePlus(startTime, 366));
+                                }else if (deltaTime == 30){
+                                    license.setEndDate(datePlus(startTime, 30));
+                                }else if (deltaTime == 90){
+                                    license.setEndDate(datePlus(startTime, 90));
+                                }else if (deltaTime == 3660){
+                                    license.setEndDate(datePlus(startTime, 3660));
                                 }
                                 license.save();
                             }else {
@@ -169,6 +190,12 @@ public class License_main extends AppCompatActivity {
                                 license.setEndDate(datePlus(startTime, 180));
                             }else if (deltaTime == 366){
                                 license.setEndDate(datePlus(startTime, 366));
+                            }else if (deltaTime == 30){
+                                license.setEndDate(datePlus(startTime, 30));
+                            }else if (deltaTime == 90){
+                                license.setEndDate(datePlus(startTime, 90));
+                            }else if (deltaTime == 3660){
+                                license.setEndDate(datePlus(startTime, 3660));
                             }
                             license.save();
                         }else {
@@ -196,6 +223,12 @@ public class License_main extends AppCompatActivity {
                                 license.setEndDate(datePlus(startTime, 180));
                             }else if (deltaTime == 366){
                                 license.setEndDate(datePlus(startTime, 366));
+                            }else if (deltaTime == 30){
+                                license.setEndDate(datePlus(startTime, 30));
+                            }else if (deltaTime == 90){
+                                license.setEndDate(datePlus(startTime, 90));
+                            }else if (deltaTime == 3660){
+                                license.setEndDate(datePlus(startTime, 3660));
                             }
                             license.save();
                         }else {
