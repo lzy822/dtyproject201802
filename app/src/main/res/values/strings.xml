@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">License</string>
+    <string name="Date_1">yyyyMMdd</string>
 </resources>
