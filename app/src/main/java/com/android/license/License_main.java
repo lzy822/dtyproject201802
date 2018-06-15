@@ -18,7 +18,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.litepal.LitePal;
-import org.litepal.crud.DataSupport;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -194,7 +193,7 @@ public class License_main extends AppCompatActivity {
                     String time = df1.format(date);
                     String startTime = df2.format(date);
                     Log.w(TAG, "startDate: " + startTime );
-                    List<licenses> lsts = DataSupport.findAll(licenses.class);
+                    List<licenses> lsts = LitePal.findAll(licenses.class);
                     int size = lsts.size();
                     boolean isExist = false;
                     if (str.length() == 15){

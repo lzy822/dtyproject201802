@@ -1,8 +1,8 @@
 package com.android.license;
 
-import org.litepal.crud.DataSupport;
+import org.litepal.crud.LitePalSupport;
 
-public class licenses extends DataSupport{
+public class licenses extends LitePalSupport{
     private String imei;
     private String password;
     private String startDate;

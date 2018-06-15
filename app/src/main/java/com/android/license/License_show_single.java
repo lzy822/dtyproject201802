@@ -10,7 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import org.litepal.crud.DataSupport;
+import org.litepal.LitePal;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -36,7 +36,7 @@ public class License_show_single extends AppCompatActivity {
         lists = new ArrayList<licenses>();
         toolbar = (Toolbar) findViewById(R.id.toolbar3);
         setSupportActionBar(toolbar);
-        lists = DataSupport.where("imei = ?", deviceId).find(licenses.class);
+        lists = LitePal.where("imei = ?", deviceId).find(licenses.class);
         int size = lists.size();
         int isOk = 0;
         for (int i = 0; i < size; i++){
@@ -75,7 +75,7 @@ public class License_show_single extends AppCompatActivity {
                 finish();
                 break;
             case  R.id.delete:
-                DataSupport.deleteAll(licenses.class);
+                LitePal.deleteAll(licenses.class);
                 break;
         }
         return true;
