@@ -301,7 +301,12 @@ public class License_main extends AppCompatActivity {
                             textView.setText("授权码为: " + password + "(长按复制)");
                         }
                     }
-                }else Toast.makeText(License_main.this, "请输入正确的设备码", Toast.LENGTH_LONG).show();
+                }else {
+                    password = encryption(str);
+                    textView.setText("授权码为: " + password + "(长按复制)");
+                    Toast.makeText(License_main.this, "该设备码与时限无关", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(License_main.this, "请输入正确的设备码", Toast.LENGTH_LONG).show();
+                }
             }
         });
         textView.setOnLongClickListener(new View.OnLongClickListener() {
