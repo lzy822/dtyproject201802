@@ -36,33 +36,20 @@ public class License_main extends AppCompatActivity {
     private static final String TAG = "License_main";
 
     //计算识别码
-    private String getPassword(String deviceId){
-        String password;
-        password = "l" + encryption(deviceId.substring(9)) + "ZY";
-        Log.w(TAG, "getPassword: " +  password);
-        if (deltaTime == 7){
-            password = password + "x";
-        }else if (deltaTime == 180){
-            password = password + "X";
-        }else if (deltaTime == 366){
-            password = password + "y";
-        }else if (deltaTime == 30){
-            password = password + "g";
-        }else if (deltaTime == 90){
-            password = password + "G";
-        }else if (deltaTime == 3660){
-            password = password + "j";
-        }
-        return password;
-    }
-
-    //计算识别码
     private String getPassword1(String deviceId){
         //String password;
         //password = "l" + encryption(deviceId) + "ZY";
         SimpleDateFormat df = new SimpleDateFormat(MyApplication.getContext().getResources().getText(R.string.Date_1).toString());
         Date nowDate = new Date(System.currentTimeMillis());
         return encryption(deviceId) + encryption1(df.format(nowDate));
+    }
+    //计算识别码
+    private String getPassword1ForAndroid10(String deviceId){
+        //String password;
+        //password = "l" + encryption(deviceId) + "ZY";
+        SimpleDateFormat df = new SimpleDateFormat(MyApplication.getContext().getResources().getText(R.string.Date_1).toString());
+        Date nowDate = new Date(System.currentTimeMillis());
+        return encryptionForAndroid10(deviceId) + encryption1(df.format(nowDate));
     }
 
     private String getDeltaDate(String password){
@@ -83,7 +70,31 @@ public class License_main extends AppCompatActivity {
     }
 
     //编码
+    private String encryptionForAndroid10(String password){
+        Log.w(TAG, "startDate: " + password );
+        password = password.replace("0", "q");
+        password = password.replace("1", "R");
+        password = password.replace("2", "V");
+        password = password.replace("3", "z");
+        password = password.replace("4", "T");
+        password = password.replace("5", "b");
+        password = password.replace("6", "L");
+        password = password.replace("7", "s");
+        password = password.replace("8", "W");
+        password = password.replace("9", "F");
+        password = password.replace("a", "d");
+        password = password.replace("b", "o");
+        password = password.replace("c", "O");
+        password = password.replace("d", "n");
+        password = password.replace("e", "v");
+        password = password.replace("f", "C");
+
+        return password;
+    }
+
+    //编码
     private String encryption(String password){
+        Log.w(TAG, "startDate: " + password );
         password = password.replace("0", "q");
         password = password.replace("1", "R");
         password = password.replace("2", "V");
@@ -100,6 +111,7 @@ public class License_main extends AppCompatActivity {
         password = password.replace("D", "n");
         password = password.replace("E", "v");
         password = password.replace("F", "C");
+
         return password;
     }
 
@@ -195,117 +207,16 @@ public class License_main extends AppCompatActivity {
                     Log.w(TAG, "startDate: " + startTime );
                     List<licenses> lsts = LitePal.findAll(licenses.class);
                     int size = lsts.size();
-                    boolean isExist = false;
+                    PasswordParameters pp = new PasswordParameters(str, size, lsts, time, startTime);
                     if (str.length() == 15){
-                        try {
-                            long test = Long.valueOf(str);
-                            for (int i = 0; i < size; i++){
-                                if (str.contentEquals(lsts.get(i).getImei()) & verifyDate(lsts.get(i).getEndDate())){
-                                    isExist = true;
-                                    password = lsts.get(i).getPassword();
-                                    break;
-                                }
-                            }
-                            if (!isExist){
-                                password = getDeltaDate(reverseStr(getPassword1(str.substring(str.length() - 6))));
-                                textView.setText("授权码为: " + password + "(长按复制)");
-                                licenses license = new licenses();
-                                license.setImei(str);
-                                license.setPassword(password);
-                                license.setRegisterDate(time);
-                                license.setStartDate(startTime);
-                                if (deltaTime == 7){
-                                    license.setEndDate(datePlus(startTime, 7));
-                                }else if (deltaTime == 180){
-                                    license.setEndDate(datePlus(startTime, 180));
-                                }else if (deltaTime == 366){
-                                    license.setEndDate(datePlus(startTime, 366));
-                                }else if (deltaTime == 30){
-                                    license.setEndDate(datePlus(startTime, 30));
-                                }else if (deltaTime == 90){
-                                    license.setEndDate(datePlus(startTime, 90));
-                                }else if (deltaTime == 3660){
-                                    license.setEndDate(datePlus(startTime, 3660));
-                                }
-                                license.save();
-                            }else {
-                                textView.setText("授权码为: " + password + "(长按复制)");
-                            }
-                        }catch (NumberFormatException e){
-                            Toast.makeText(License_main.this, "请输入正确的设备码", Toast.LENGTH_LONG).show();
-                        }
+                        Manage15PasswordForAndroid10(pp);
                     }else if (str.length() == 14){
-                        for (int i = 0; i < size; i++){
-                            if (str.contentEquals(lsts.get(i).getImei()) & verifyDate(lsts.get(i).getEndDate())){
-                                isExist = true;
-                                password = lsts.get(i).getPassword();
-                                break;
-                            }
-                        }
-                        if (!isExist){
-                            password = getDeltaDate(reverseStr(getPassword1(str.substring(str.length() - 6))));
-                            textView.setText("授权码为: " + password + "(长按复制)");
-                            licenses license = new licenses();
-                            license.setImei(str);
-                            license.setPassword(password);
-                            license.setRegisterDate(time);
-                            license.setStartDate(startTime);
-                            if (deltaTime == 7){
-                                license.setEndDate(datePlus(startTime, 7));
-                            }else if (deltaTime == 180){
-                                license.setEndDate(datePlus(startTime, 180));
-                            }else if (deltaTime == 366){
-                                license.setEndDate(datePlus(startTime, 366));
-                            }else if (deltaTime == 30){
-                                license.setEndDate(datePlus(startTime, 30));
-                            }else if (deltaTime == 90){
-                                license.setEndDate(datePlus(startTime, 90));
-                            }else if (deltaTime == 3660){
-                                license.setEndDate(datePlus(startTime, 3660));
-                            }
-                            license.save();
-                        }else {
-                            textView.setText("授权码为: " + password + "(长按复制)");
-                        }
+                        Manage14PasswordForOldAndroidVersion(pp);
                     }else {
-                        for (int i = 0; i < size; i++){
-                            if (str.contentEquals(lsts.get(i).getImei()) & verifyDate(lsts.get(i).getEndDate())){
-                                isExist = true;
-                                password = lsts.get(i).getPassword();
-                                break;
-                            }
-                        }
-                        if (!isExist){
-                            password = getDeltaDate(reverseStr(getPassword1(str.substring(str.length() - 6))));
-                            textView.setText("授权码为: " + password + "(长按复制)");
-                            licenses license = new licenses();
-                            license.setImei(str);
-                            license.setPassword(password);
-                            license.setRegisterDate(time);
-                            license.setStartDate(startTime);
-                            if (deltaTime == 7){
-                                license.setEndDate(datePlus(startTime, 7));
-                            }else if (deltaTime == 180){
-                                license.setEndDate(datePlus(startTime, 180));
-                            }else if (deltaTime == 366){
-                                license.setEndDate(datePlus(startTime, 366));
-                            }else if (deltaTime == 30){
-                                license.setEndDate(datePlus(startTime, 30));
-                            }else if (deltaTime == 90){
-                                license.setEndDate(datePlus(startTime, 90));
-                            }else if (deltaTime == 3660){
-                                license.setEndDate(datePlus(startTime, 3660));
-                            }
-                            license.save();
-                        }else {
-                            textView.setText("授权码为: " + password + "(长按复制)");
-                        }
+                        Manage16PasswordForOldAndroidVersion(pp);
                     }
                 }else {
-                    password = encryption(str);
-                    textView.setText("授权码为: " + password + "(长按复制)");
-                    Toast.makeText(License_main.this, "该设备码与时限无关", Toast.LENGTH_LONG).show();
-                    //Toast.makeText(License_main.this, "请输入正确的设备码", Toast.LENGTH_LONG).show();
+                    ManageSimplePasswordForOtherApp(str);
                 }
             }
         });
@@ -321,6 +232,126 @@ public class License_main extends AppCompatActivity {
                 return true;
             }
         });
+    }
+
+    private void ManageSimplePasswordForOtherApp(String str) {
+        password = encryption(str);
+        textView.setText("授权码为: " + password + "(长按复制)");
+        Toast.makeText(License_main.this, "该设备码与时限无关", Toast.LENGTH_LONG).show();
+    }
+
+    private void Manage16PasswordForOldAndroidVersion(PasswordParameters pp) {
+        boolean isExist = false;
+        for (int i = 0; i < pp.size; i++){
+            if (pp.str.contentEquals(pp.lsts.get(i).getImei()) & verifyDate(pp.lsts.get(i).getEndDate())){
+                isExist = true;
+                password = pp.lsts.get(i).getPassword();
+                break;
+            }
+        }
+        if (!isExist){
+            password = getDeltaDate(reverseStr(getPassword1(pp.str.substring(pp.str.length() - 6))));
+            textView.setText("授权码为: " + password + "(长按复制)");
+            licenses license = new licenses();
+            license.setImei(pp.str);
+            license.setPassword(password);
+            license.setRegisterDate(pp.time);
+            license.setStartDate(pp.startTime);
+            if (deltaTime == 7){
+                license.setEndDate(datePlus(pp.startTime, 7));
+            }else if (deltaTime == 180){
+                license.setEndDate(datePlus(pp.startTime, 180));
+            }else if (deltaTime == 366){
+                license.setEndDate(datePlus(pp.startTime, 366));
+            }else if (deltaTime == 30){
+                license.setEndDate(datePlus(pp.startTime, 30));
+            }else if (deltaTime == 90){
+                license.setEndDate(datePlus(pp.startTime, 90));
+            }else if (deltaTime == 3660){
+                license.setEndDate(datePlus(pp.startTime, 3660));
+            }
+            license.save();
+        }else {
+            textView.setText("授权码为: " + password + "(长按复制)");
+        }
+    }
+
+    private void Manage14PasswordForOldAndroidVersion(PasswordParameters pp) {
+        boolean isExist = false;
+        for (int i = 0; i < pp.size; i++){
+            if (pp.str.contentEquals(pp.lsts.get(i).getImei()) & verifyDate(pp.lsts.get(i).getEndDate())){
+                isExist = true;
+                password = pp.lsts.get(i).getPassword();
+                break;
+            }
+        }
+        if (!isExist){
+            password = getDeltaDate(reverseStr(getPassword1(pp.str.substring(pp.str.length() - 6))));
+            textView.setText("授权码为: " + password + "(长按复制)");
+            licenses license = new licenses();
+            license.setImei(pp.str);
+            license.setPassword(password);
+            license.setRegisterDate(pp.time);
+            license.setStartDate(pp.startTime);
+            if (deltaTime == 7){
+                license.setEndDate(datePlus(pp.startTime, 7));
+            }else if (deltaTime == 180){
+                license.setEndDate(datePlus(pp.startTime, 180));
+            }else if (deltaTime == 366){
+                license.setEndDate(datePlus(pp.startTime, 366));
+            }else if (deltaTime == 30){
+                license.setEndDate(datePlus(pp.startTime, 30));
+            }else if (deltaTime == 90){
+                license.setEndDate(datePlus(pp.startTime, 90));
+            }else if (deltaTime == 3660){
+                license.setEndDate(datePlus(pp.startTime, 3660));
+            }
+            license.save();
+        }else {
+            textView.setText("授权码为: " + password + "(长按复制)");
+        }
+    }
+
+    private void Manage15PasswordForAndroid10(PasswordParameters pp) {
+        boolean isExist = false;
+        try {
+            //long test = Long.valueOf(str);
+            for (int i = 0; i < pp.size; i++){
+                if (pp.str.contentEquals(pp.lsts.get(i).getImei()) & verifyDate(pp.lsts.get(i).getEndDate())){
+                    isExist = true;
+                    password = pp.lsts.get(i).getPassword();
+                    break;
+                }
+            }
+            Log.w(TAG, "onClicktest: " + 2);
+            if (!isExist){
+                password = getDeltaDate(reverseStr(getPassword1ForAndroid10(pp.str.substring(pp.str.length() - 6))));
+                textView.setText("授权码为: " + password + "(长按复制)");
+                licenses license = new licenses();
+                license.setImei(pp.str);
+                license.setPassword(password);
+                license.setRegisterDate(pp.time);
+                license.setStartDate(pp.startTime);
+                if (deltaTime == 7){
+                    license.setEndDate(datePlus(pp.startTime, 7));
+                }else if (deltaTime == 180){
+                    license.setEndDate(datePlus(pp.startTime, 180));
+                }else if (deltaTime == 366){
+                    license.setEndDate(datePlus(pp.startTime, 366));
+                }else if (deltaTime == 30){
+                    license.setEndDate(datePlus(pp.startTime, 30));
+                }else if (deltaTime == 90){
+                    license.setEndDate(datePlus(pp.startTime, 90));
+                }else if (deltaTime == 3660){
+                    license.setEndDate(datePlus(pp.startTime, 3660));
+                }
+                license.save();
+            }else {
+                textView.setText("授权码为: " + password + "(长按复制)");
+            }
+        }catch (NumberFormatException e){
+            Toast.makeText(License_main.this, "请输入正确的设备码" + e.toString(), Toast.LENGTH_LONG).show();
+        }
     }
 
     //Day:日期字符串例如 2015-3-10  Num:需要减少的天数例如 7
