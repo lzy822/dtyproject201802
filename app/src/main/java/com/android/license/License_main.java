@@ -1,15 +1,23 @@
 package com.android.license;
 
+import android.Manifest;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.ListPopupWindow;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -21,9 +29,13 @@ import org.litepal.LitePal;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class License_main extends AppCompatActivity {
     EditText editText;
@@ -156,10 +168,26 @@ public class License_main extends AppCompatActivity {
         return password;
     }
 
+    //请求授权
+    private void requestAuthority(){
+        List<String> permissionList = new ArrayList<>();
+        if (ContextCompat.checkSelfPermission(License_main.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
+        if (ContextCompat.checkSelfPermission(License_main.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            permissionList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+        if (!permissionList.isEmpty()){
+            String[] permissions = permissionList.toArray(new String[permissionList.size()]);
+            ActivityCompat.requestPermissions(License_main.this, permissions, 118);
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_license_main);
+        requestAuthority();
         deltaTime = 7;
         radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -197,26 +225,33 @@ public class License_main extends AppCompatActivity {
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String str = editText.getText().toString();
-                if (str.length() >= 14 & str.length() <= 16){
-                    SimpleDateFormat df1 = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
-                    SimpleDateFormat df2 = new SimpleDateFormat("yyyy年MM月dd日");
-                    Date date = new Date(System.currentTimeMillis());
-                    String time = df1.format(date);
-                    String startTime = df2.format(date);
-                    Log.w(TAG, "startDate: " + startTime );
-                    List<licenses> lsts = LitePal.findAll(licenses.class);
-                    int size = lsts.size();
-                    PasswordParameters pp = new PasswordParameters(str, size, lsts, time, startTime);
-                    if (str.length() == 15){
-                        Manage15PasswordForAndroid10(pp);
-                    }else if (str.length() == 14){
-                        Manage14PasswordForOldAndroidVersion(pp);
-                    }else {
-                        Manage16PasswordForOldAndroidVersion(pp);
+                EditText EnterpriseEditText = (EditText) findViewById(R.id.inputenterprise_edit);
+                EditText NameEditText = (EditText) findViewById(R.id.inputname_edit);
+                String EnterpriseStr = EnterpriseEditText.getText().toString().trim();
+                String NameStr = NameEditText.getText().toString().trim();
+                if (NameStr.length()>0 && EnterpriseStr.length()>0) {
+                    String str = editText.getText().toString();
+                    if (str.length() >= 14 & str.length() <= 16) {
+                        SimpleDateFormat df1 = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+                        SimpleDateFormat df2 = new SimpleDateFormat("yyyy年MM月dd日");
+                        Date date = new Date(System.currentTimeMillis());
+                        String time = df1.format(date);
+                        String startTime = df2.format(date);
+                        Log.w(TAG, "startDate: " + startTime);
+                        List<licenses> lsts = LitePal.findAll(licenses.class);
+                        int size = lsts.size();
+                        PasswordParameters pp = new PasswordParameters(str, size, lsts, time, startTime);
+                        if (str.length() == 15) {
+                            ManageAndroid10Password(pp);
+                        } else {
+                            ManageOldAndroidVersionPassword(pp);
+                        }
+                    } else {
+                        ManageOtherSystemPassword(str);
                     }
-                }else {
-                    ManageSimplePasswordForOtherApp(str);
+                }
+                else{
+                    Toast.makeText(License_main.this, "请完善输入信息！企业和用户名不可为空！", Toast.LENGTH_LONG);
                 }
             }
         });
@@ -232,90 +267,187 @@ public class License_main extends AppCompatActivity {
                 return true;
             }
         });
+
+        final Button EnterpriseSearchButton = (Button) findViewById(R.id.enterprisesearch_button);
+        EnterpriseSearchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ShowEnterpriseDownPullMenu();
+            }
+        });
+
+        final Button NameSearchButton = (Button) findViewById(R.id.namesearch_button);
+        NameSearchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ShowNameDownPullMenu();
+            }
+        });
     }
 
-    private void ManageSimplePasswordForOtherApp(String str) {
+    private void ShowNameDownPullMenu(){
+        final EditText inputname_edit = (EditText) findViewById(R.id.inputname_edit);
+        final ListPopupWindow listPopupWindow = new ListPopupWindow(this);
+
+        HashMap<String, String> hashMap = new HashMap<>();
+        List<licenses> licensesList = LitePal.findAll(licenses.class);
+        for (int i = 0; i < licensesList.size(); i++) {
+            String name = licensesList.get(i).getName();
+            if (!hashMap.containsKey(name))
+                hashMap.put(name, "");
+        }
+        final String[] items = new String[hashMap.size()];
+        Iterator iter = hashMap.entrySet().iterator();
+        int i = 0;
+        while (iter.hasNext()) {
+            Map.Entry entry = (Map.Entry) iter.next();
+            Object key = entry.getKey();
+            items[i++] = (String) key;
+        }
+
+        // ListView适配器
+        listPopupWindow.setAdapter(new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, items));
+
+        // 选择item的监听事件
+        listPopupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                String name = items[position];
+
+                inputname_edit.setText(name);
+            }
+        });
+
+        // 对话框的宽高
+        listPopupWindow.setWidth(600);
+        listPopupWindow.setHeight(600);
+
+        // ListPopupWindow的锚,弹出框的位置是相对当前View的位置
+        listPopupWindow.setAnchorView(inputname_edit);
+
+        // ListPopupWindow 距锚view的距离
+        listPopupWindow.setHorizontalOffset(0);
+        listPopupWindow.setVerticalOffset(5);
+
+        listPopupWindow.setModal(false);
+
+        listPopupWindow.show();
+    }
+
+    private void ShowEnterpriseDownPullMenu(){
+        final EditText inputenterprise_edit = (EditText) findViewById(R.id.inputenterprise_edit);
+
+        final ListPopupWindow listPopupWindow = new ListPopupWindow(this);
+
+        HashMap<String, String> hashMap = new HashMap<>();
+        List<licenses> licensesList = LitePal.findAll(licenses.class);
+        for (int i = 0; i < licensesList.size(); i++) {
+            String enterprise = licensesList.get(i).getEnterprise();
+            if (!hashMap.containsKey(enterprise))
+                hashMap.put(enterprise, "");
+        }
+        final String[] items = new String[hashMap.size()];
+        Iterator iter = hashMap.entrySet().iterator();
+        int i = 0;
+        while (iter.hasNext()) {
+            Map.Entry entry = (Map.Entry) iter.next();
+            Object key = entry.getKey();
+            items[i++] = (String) key;
+        }
+
+        // ListView适配器
+        listPopupWindow.setAdapter(new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, items));
+
+        // 选择item的监听事件
+        listPopupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                String enterprise = items[position];
+
+                inputenterprise_edit.setText(enterprise);
+            }
+        });
+
+        // 对话框的宽高
+        listPopupWindow.setWidth(600);
+        listPopupWindow.setHeight(600);
+
+        // ListPopupWindow的锚,弹出框的位置是相对当前View的位置
+        listPopupWindow.setAnchorView(inputenterprise_edit);
+
+        // ListPopupWindow 距锚view的距离
+        listPopupWindow.setHorizontalOffset(0);
+        listPopupWindow.setVerticalOffset(5);
+
+        listPopupWindow.setModal(false);
+
+        listPopupWindow.show();
+    }
+
+    private void ManageOtherSystemPassword(String str) {
         password = encryption(str);
         textView.setText("授权码为: " + password + "(长按复制)");
         Toast.makeText(License_main.this, "该设备码与时限无关", Toast.LENGTH_LONG).show();
     }
 
-    private void Manage16PasswordForOldAndroidVersion(PasswordParameters pp) {
-        boolean isExist = false;
-        for (int i = 0; i < pp.size; i++){
-            if (pp.str.contentEquals(pp.lsts.get(i).getImei()) & verifyDate(pp.lsts.get(i).getEndDate())){
-                isExist = true;
-                password = pp.lsts.get(i).getPassword();
-                break;
-            }
+    private String GetOldVersionPassword(String str){
+        String password = "";
+        try {
+            password = getDeltaDate(reverseStr(getPassword1(str.substring(str.length() - 6))));
+        }catch (Exception e){
+            Toast.makeText(License_main.this, "获取老版本验证码出错。可能是对方机器获取了假的验证码，请获取对方设备的硬件型号和软件版本号", Toast.LENGTH_LONG).show();
         }
-        if (!isExist){
-            password = getDeltaDate(reverseStr(getPassword1(pp.str.substring(pp.str.length() - 6))));
-            textView.setText("授权码为: " + password + "(长按复制)");
-            licenses license = new licenses();
-            license.setImei(pp.str);
-            license.setPassword(password);
-            license.setRegisterDate(pp.time);
-            license.setStartDate(pp.startTime);
-            if (deltaTime == 7){
-                license.setEndDate(datePlus(pp.startTime, 7));
-            }else if (deltaTime == 180){
-                license.setEndDate(datePlus(pp.startTime, 180));
-            }else if (deltaTime == 366){
-                license.setEndDate(datePlus(pp.startTime, 366));
-            }else if (deltaTime == 30){
-                license.setEndDate(datePlus(pp.startTime, 30));
-            }else if (deltaTime == 90){
-                license.setEndDate(datePlus(pp.startTime, 90));
-            }else if (deltaTime == 3660){
-                license.setEndDate(datePlus(pp.startTime, 3660));
-            }
-            license.save();
-        }else {
-            textView.setText("授权码为: " + password + "(长按复制)");
-        }
+        return password;
     }
 
-    private void Manage14PasswordForOldAndroidVersion(PasswordParameters pp) {
-        boolean isExist = false;
-        for (int i = 0; i < pp.size; i++){
-            if (pp.str.contentEquals(pp.lsts.get(i).getImei()) & verifyDate(pp.lsts.get(i).getEndDate())){
-                isExist = true;
-                password = pp.lsts.get(i).getPassword();
-                break;
-            }
+    private String GetAndroid10Password(String str) {
+        String password = "";
+        try {
+            password = getDeltaDate(reverseStr(getPassword1ForAndroid10(str.substring(str.length() - 6))));
+        }catch (Exception e){
+            Toast.makeText(License_main.this, "获取安卓10验证码出错。可能是对方机器获取了假的验证码，请获取对方设备的硬件型号和软件版本号", Toast.LENGTH_LONG).show();
         }
-        if (!isExist){
-            password = getDeltaDate(reverseStr(getPassword1(pp.str.substring(pp.str.length() - 6))));
-            textView.setText("授权码为: " + password + "(长按复制)");
-            licenses license = new licenses();
-            license.setImei(pp.str);
-            license.setPassword(password);
-            license.setRegisterDate(pp.time);
-            license.setStartDate(pp.startTime);
-            if (deltaTime == 7){
-                license.setEndDate(datePlus(pp.startTime, 7));
-            }else if (deltaTime == 180){
-                license.setEndDate(datePlus(pp.startTime, 180));
-            }else if (deltaTime == 366){
-                license.setEndDate(datePlus(pp.startTime, 366));
-            }else if (deltaTime == 30){
-                license.setEndDate(datePlus(pp.startTime, 30));
-            }else if (deltaTime == 90){
-                license.setEndDate(datePlus(pp.startTime, 90));
-            }else if (deltaTime == 3660){
-                license.setEndDate(datePlus(pp.startTime, 3660));
-            }
-            license.save();
-        }else {
-            textView.setText("授权码为: " + password + "(长按复制)");
-        }
+        return password;
     }
 
-    private void Manage15PasswordForAndroid10(PasswordParameters pp) {
+    private void ManageOldAndroidVersionPassword(PasswordParameters pp) {
+        boolean isExist = hasExistPassword(pp);
+
+        if (!isExist){
+            password = GetOldVersionPassword(pp.str);
+
+            SaveAndroidPasswordInfo(pp);
+        }
+
+        textView.setText("授权码为: " + password + "(长按复制)");
+    }
+
+    private void ManageAndroid10Password(PasswordParameters pp) {
         boolean isExist = false;
         try {
             //long test = Long.valueOf(str);
+            isExist = hasExistPassword(pp);
+
+            Log.w(TAG, "onClicktest: " + 2);
+            if (!isExist){
+                password = GetAndroid10Password(pp.str);
+
+                SaveAndroidPasswordInfo(pp);
+            }
+
+            textView.setText("授权码为: " + password + "(长按复制)");
+
+        }catch (NumberFormatException e){
+            Toast.makeText(License_main.this, "请输入正确的设备码" + e.toString(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private Boolean hasExistPassword(PasswordParameters pp){
+        boolean isExist = false;
+
+        try {
             for (int i = 0; i < pp.size; i++){
                 if (pp.str.contentEquals(pp.lsts.get(i).getImei()) & verifyDate(pp.lsts.get(i).getEndDate())){
                     isExist = true;
@@ -323,35 +455,67 @@ public class License_main extends AppCompatActivity {
                     break;
                 }
             }
-            Log.w(TAG, "onClicktest: " + 2);
-            if (!isExist){
-                password = getDeltaDate(reverseStr(getPassword1ForAndroid10(pp.str.substring(pp.str.length() - 6))));
-                textView.setText("授权码为: " + password + "(长按复制)");
-                licenses license = new licenses();
-                license.setImei(pp.str);
-                license.setPassword(password);
-                license.setRegisterDate(pp.time);
-                license.setStartDate(pp.startTime);
-                if (deltaTime == 7){
-                    license.setEndDate(datePlus(pp.startTime, 7));
-                }else if (deltaTime == 180){
-                    license.setEndDate(datePlus(pp.startTime, 180));
-                }else if (deltaTime == 366){
-                    license.setEndDate(datePlus(pp.startTime, 366));
-                }else if (deltaTime == 30){
-                    license.setEndDate(datePlus(pp.startTime, 30));
-                }else if (deltaTime == 90){
-                    license.setEndDate(datePlus(pp.startTime, 90));
-                }else if (deltaTime == 3660){
-                    license.setEndDate(datePlus(pp.startTime, 3660));
-                }
-                license.save();
-            }else {
-                textView.setText("授权码为: " + password + "(长按复制)");
-            }
-        }catch (NumberFormatException e){
-            Toast.makeText(License_main.this, "请输入正确的设备码" + e.toString(), Toast.LENGTH_LONG).show();
         }
+        catch (Exception e){
+            Toast.makeText(License_main.this, "校验验证码出错，请联系我或重装Licence" + e.toString(), Toast.LENGTH_LONG).show();
+        }
+
+        return isExist;
+    }
+
+    private void SaveAndroidPasswordInfo(PasswordParameters pp){
+        EditText EnterpriseEditText = (EditText) findViewById(R.id.inputenterprise_edit);
+        EditText NameEditText = (EditText) findViewById(R.id.inputname_edit);
+        String EnterpriseStr = EnterpriseEditText.getText().toString().trim();
+        String NameStr = NameEditText.getText().toString().trim();
+
+        licenses license = new licenses();
+        license.setImei(pp.str);
+        license.setPassword(password);
+        license.setRegisterDate(pp.time);
+        license.setStartDate(pp.startTime);
+        license.setEndDate(datePlus(pp.startTime, deltaTime));
+        license.setSystemNum(0);
+        license.setEnterprise(EnterpriseStr);
+        license.setName(NameStr);
+            /*if (deltaTime == 7){
+                license.setEndDate(datePlus(pp.startTime, 7));
+            }else if (deltaTime == 180){
+                license.setEndDate(datePlus(pp.startTime, 180));
+            }else if (deltaTime == 366){
+                license.setEndDate(datePlus(pp.startTime, 366));
+            }else if (deltaTime == 30){
+                license.setEndDate(datePlus(pp.startTime, 30));
+            }else if (deltaTime == 90){
+                license.setEndDate(datePlus(pp.startTime, 90));
+            }else if (deltaTime == 3660){
+                license.setEndDate(datePlus(pp.startTime, 3660));
+            }*/
+        license.save();
+    }
+
+    private void SaveOtherSystemPasswordInfo(PasswordParameters pp){
+        licenses license = new licenses();
+        license.setImei(pp.str);
+        license.setPassword(password);
+        license.setRegisterDate(pp.time);
+        license.setStartDate(pp.startTime);
+        license.setEndDate(datePlus(pp.startTime, deltaTime));
+        license.setSystemNum(1);
+            /*if (deltaTime == 7){
+                license.setEndDate(datePlus(pp.startTime, 7));
+            }else if (deltaTime == 180){
+                license.setEndDate(datePlus(pp.startTime, 180));
+            }else if (deltaTime == 366){
+                license.setEndDate(datePlus(pp.startTime, 366));
+            }else if (deltaTime == 30){
+                license.setEndDate(datePlus(pp.startTime, 30));
+            }else if (deltaTime == 90){
+                license.setEndDate(datePlus(pp.startTime, 90));
+            }else if (deltaTime == 3660){
+                license.setEndDate(datePlus(pp.startTime, 3660));
+            }*/
+        license.save();
     }
 
     //Day:日期字符串例如 2015-3-10  Num:需要减少的天数例如 7
@@ -391,6 +555,8 @@ public class License_main extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.maintoolbar, menu);
         menu.findItem(R.id.back).setVisible(false);
         menu.findItem(R.id.delete).setVisible(false);
+        menu.findItem(R.id.output).setVisible(false);
+        menu.findItem(R.id.sort).setVisible(false);
         return true;
     }
 

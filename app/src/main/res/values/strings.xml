@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">License</string>
     <string name="Date_1">yyyyMMdd</string>
+    <string name="save_folder_name1">LicenseData</string>
 </resources>

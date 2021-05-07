@@ -1,6 +1,7 @@
 package com.android.license;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -8,12 +9,14 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.net.Uri;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -66,15 +69,17 @@ public class license_testAdapter extends RecyclerView.Adapter<license_testAdapte
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //if (mOnItemClick != null){
+
+                if (mOnItemClick != null){
                     int position = holder.getAdapterPosition();
                     license_test license = mlicenseList.get(position);
-                    //mOnItemClick.onItemClick(v, position);
-                //}
+                    mOnItemClick.onItemClick(v, position);
+                    notifyItemRangeChanged(0, mlicenseList.size());
+                }
 
-                Intent intent = new Intent(mContext, License_show_single.class);
+                /*Intent intent = new Intent(mContext, License_show_single.class);
                 intent.putExtra("deviceId", license.getImei());
-                mContext.startActivity(intent);
+                mContext.startActivity(intent);*/
             }
         });
         holder.cardView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -84,7 +89,8 @@ public class license_testAdapter extends RecyclerView.Adapter<license_testAdapte
                     int position = holder.getAdapterPosition();
                     license_test license = mlicenseList.get(position);
                     mOnItemLong.onItemLongClick(v, position);
-                    holder.cardView.setCardBackgroundColor(Color.GRAY);
+                    notifyItemRangeChanged(0, mlicenseList.size());
+                    //holder.cardView.setCardBackgroundColor(Color.GRAY);
                 }
                 return true;
             }
@@ -107,7 +113,16 @@ public class license_testAdapter extends RecyclerView.Adapter<license_testAdapte
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         license_test license = mlicenseList.get(position);
-        String str = "设备码为: " + license.getImei() + "\n" + "授权码为: " + license.getPassword() + "\n" + "授权时间: " + license.getRegisterDate()
+        String SystemStr = "";
+        switch (license.getSystemnum()){
+            case 0:
+                SystemStr="安卓";
+                break;
+            case 1:
+                SystemStr="Windows";
+                break;
+        }
+        String str = "企业名: " + license.getEnterprise() + "\n" + "用户名: " + license.getName() + "\n" +  "系统号: " + SystemStr + "\n" +  "设备码: " + license.getImei() + "\n" + "授权码: " + license.getPassword() + "\n" + "授权时间: " + license.getRegisterDate()
                 + "\n" + "开始时间: " + license.getStartDate() + "\n" + "结束时间: " + license.getEndDate();
         if (verifyDate(license.getEndDate())){
             holder.cardView.setCardBackgroundColor(Color.GREEN);

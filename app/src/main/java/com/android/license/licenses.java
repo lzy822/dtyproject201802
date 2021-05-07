@@ -8,6 +8,33 @@ public class licenses extends LitePalSupport{
     private String startDate;
     private String endDate;
     private String registerDate;
+    private String name;
+    private String enterprise;
+    private int SystemNum;
+
+    public int getSystemNum() {
+        return SystemNum;
+    }
+
+    public void setSystemNum(int systemNum) {
+        SystemNum = systemNum;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEnterprise() {
+        return enterprise;
+    }
+
+    public void setEnterprise(String enterprise) {
+        this.enterprise = enterprise;
+    }
 
     public String getImei() {
         return imei;

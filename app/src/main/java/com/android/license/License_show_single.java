@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import org.litepal.LitePal;
@@ -42,7 +43,8 @@ public class License_show_single extends AppCompatActivity {
         for (int i = 0; i < size; i++){
             if (verifyDate(lists.get(i).getEndDate())) {
                 isOk++;
-                license_test licenseTest = new license_test(lists.get(i).getImei(), lists.get(i).getPassword(), lists.get(i).getStartDate(), lists.get(i).getEndDate(), lists.get(i).getRegisterDate());
+                license_test licenseTest = new license_test(lists.get(i).getImei(), lists.get(i).getPassword(), lists.get(i).getStartDate(), lists.get(i).getEndDate(), lists.get(i).getRegisterDate(), lists.get(i).getEnterprise()
+                        , lists.get(i).getName(), lists.get(i).getSystemNum());
                 license_tests.add(licenseTest);
             }
         }
@@ -50,10 +52,24 @@ public class License_show_single extends AppCompatActivity {
         for (int i = 0; i < size; i++){
             //license_test licenseTest = new license_test(lists.get(i).getImei(), lists.get(i).getPassword(), lists.get(i).getRegisterDate());
             if (!verifyDate(lists.get(i).getEndDate())) {
-                license_test licenseTest = new license_test(lists.get(i).getImei(), lists.get(i).getPassword(), lists.get(i).getStartDate(), lists.get(i).getEndDate(), lists.get(i).getRegisterDate());
+                license_test licenseTest = new license_test(lists.get(i).getImei(), lists.get(i).getPassword(), lists.get(i).getStartDate(), lists.get(i).getEndDate(), lists.get(i).getRegisterDate(), lists.get(i).getEnterprise()
+                        , lists.get(i).getName(), lists.get(i).getSystemNum());
                 license_tests.add(licenseTest);
             }
         }
+        recyclerView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+        recyclerView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+
+                return false;
+            }
+        });
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view1);
         layoutManager = new GridLayoutManager(this,1);
         recyclerView.setLayoutManager(layoutManager);

@@ -12,7 +12,17 @@
     <item
         android:id="@+id/delete"
         android:title="删除所有数据"
-        app:showAsAction="always"/>
+        app:showAsAction="never"/>
+    <item
+    android:id="@+id/sort"
+    android:title="筛选排序"
+    android:icon="@drawable/ic_local_bar_white_24dp"
+    app:showAsAction="always"/>
+    <item
+    android:id="@+id/output"
+    android:title="导出"
+    android:icon="@drawable/ic_merge_type_white_24dp"
+    app:showAsAction="always"/>
 
 
 </menu>
