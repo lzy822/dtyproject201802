@@ -35,8 +35,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class License_show extends AppCompatActivity {
-    List<license_test> license_tests;
-    List<licenses> lists;
+    List<license_test> ShowedLicenseList;
+    List<licenses> AllLicenseList;
     Toolbar toolbar;
     RecyclerView recyclerView;
     RecyclerView.LayoutManager layoutManager;
@@ -48,7 +48,8 @@ public class License_show extends AppCompatActivity {
         setContentView(R.layout.activity_license_show);
         toolbar = (Toolbar) findViewById(R.id.toolbar2);
         setSupportActionBar(toolbar);
-        RefreshRecycler();
+        //RefreshRecycler();
+        RefreshPage("", RefreshRecyclerTypeEnum.STARTDATE_PLUS);
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -68,11 +69,10 @@ public class License_show extends AppCompatActivity {
                 LitePal.deleteAll(licenses.class);
                 break;
             case  R.id.sort:
-                if (isSpecificEnterpriseStatue){
-                    showFilteredChoiceDialog();
-                }else{
+                if (CurrentEnterprise.equals(""))
                     showStandardChoiceDialog();
-                }
+                else
+                    showFilteredChoiceDialog();
                 break;
             case  R.id.output:
                 OutputEvent();
@@ -101,7 +101,7 @@ public class License_show extends AppCompatActivity {
         return stringBuffer.append(newStr);
     }
 
-    private StringBuffer MakeLicenseRowInfo(StringBuffer stringBuffer, license_test license_test){
+    private StringBuffer MakeInfoRow(StringBuffer stringBuffer, license_test license_test){
         StringBuffer stringBuffer1 = new StringBuffer();
         stringBuffer1.append(license_test.getEnterprise()).append(",");
         stringBuffer1.append(license_test.getName()).append(",");
@@ -124,9 +124,9 @@ public class License_show extends AppCompatActivity {
     private void OutputEvent(){
         StringBuffer stringBuffer = new StringBuffer();
         stringBuffer = MakeFileHead(stringBuffer);
-        for (int i = 0; i < license_tests.size(); i++) {
-            license_test license_test = license_tests.get(i);
-            stringBuffer = MakeLicenseRowInfo(stringBuffer, license_test);
+        for (int i = 0; i < ShowedLicenseList.size(); i++) {
+            license_test license_test = ShowedLicenseList.get(i);
+            stringBuffer = MakeInfoRow(stringBuffer, license_test);
         }
         File file = new File(Environment.getExternalStorageDirectory() + "/" + License_show.this.getResources().getText(R.string.save_folder_name1) + "/Output");
         if (!file.exists()){
@@ -143,7 +143,259 @@ public class License_show extends AppCompatActivity {
         }
     }
 
-    private void RefreshRecycler(){
+    String CurrentEnterprise = "";
+    int yourChoice;
+    private void showStandardChoiceDialog(){
+        final String[] items = { "开始时间排序","到期时间排序","只看某单位" };
+        yourChoice = 0;
+        AlertDialog.Builder singleChoiceDialog =
+                new AlertDialog.Builder(License_show.this);
+        singleChoiceDialog.setTitle("筛选排序");
+        // 第二个参数是默认选项，此处设置为0
+        singleChoiceDialog.setSingleChoiceItems(items, 0,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        yourChoice = which;
+                    }
+                });
+        singleChoiceDialog.setPositiveButton("确定",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (yourChoice != -1) {
+                            /*Toast.makeText(License_show.this,
+                                    "你选择了" + items[yourChoice],
+                                    Toast.LENGTH_SHORT).show();*/
+                            switch (yourChoice){
+                                case 0:
+                                    //RefreshRecyclerForStartDate();
+                                    RefreshPage("", RefreshRecyclerTypeEnum.STARTDATE_PLUS);
+                                    break;
+                                case 1:
+                                    //RefreshRecyclerForEndDate();
+                                    RefreshPage("", RefreshRecyclerTypeEnum.ENDDATE_PLUS);
+                                    break;
+                                case 2:
+                                    ShowEnterpriseChoiceDialog();
+                                    break;
+                            }
+                        }
+                    }
+                });
+        singleChoiceDialog.show();
+    }
+
+    private void ShowEnterpriseChoiceDialog(){
+        HashMap<String, String> hashMap = new HashMap<>();
+        List<licenses> licensesList = LitePal.findAll(licenses.class);
+        for (int i = 0; i < licensesList.size(); i++) {
+            String enterprise = licensesList.get(i).getEnterprise();
+            if (!hashMap.containsKey(enterprise))
+                hashMap.put(enterprise, "");
+        }
+        final String[] items = new String[hashMap.size()];
+        Iterator iter = hashMap.entrySet().iterator();
+        int i = 0;
+        while (iter.hasNext()) {
+            Map.Entry entry = (Map.Entry) iter.next();
+            Object key = entry.getKey();
+            items[i++] = (String) key;
+        }
+        yourChoice = 0;
+        AlertDialog.Builder singleChoiceDialog =
+                new AlertDialog.Builder(License_show.this);
+        singleChoiceDialog.setTitle("筛选排序");
+        // 第二个参数是默认选项，此处设置为0
+        singleChoiceDialog.setSingleChoiceItems(items, 0,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        yourChoice = which;
+                    }
+                });
+        singleChoiceDialog.setPositiveButton("确定",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (yourChoice != -1) {
+                            CurrentEnterprise = items[yourChoice];
+                            //RefreshRecycler(items[yourChoice]);
+                            RefreshPage(items[yourChoice], RefreshRecyclerTypeEnum.STARTDATE_ENTERPRISE_PLUS);
+                        }
+                    }
+                });
+        singleChoiceDialog.show();
+    }
+
+    private void showFilteredChoiceDialog(){
+        final String[] items = { "开始时间排序","到期时间排序","查看所有"};
+        yourChoice = 0;
+        AlertDialog.Builder singleChoiceDialog =
+                new AlertDialog.Builder(License_show.this);
+        singleChoiceDialog.setTitle("筛选排序");
+        // 第二个参数是默认选项，此处设置为0
+        singleChoiceDialog.setSingleChoiceItems(items, 0,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        yourChoice = which;
+                    }
+                });
+        singleChoiceDialog.setPositiveButton("确定",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (yourChoice != -1) {
+                            /*Toast.makeText(License_show.this,
+                                    "你选择了" + items[yourChoice],
+                                    Toast.LENGTH_SHORT).show();*/
+                            switch (yourChoice){
+                                case 0:
+                                    //RefreshRecyclerForStartDate(CurrentEnterprise);
+                                    RefreshPage(CurrentEnterprise, RefreshRecyclerTypeEnum.STARTDATE_ENTERPRISE_PLUS);
+                                    break;
+                                case 1:
+                                    //RefreshRecyclerForEndDate(CurrentEnterprise);
+                                    RefreshPage(CurrentEnterprise, RefreshRecyclerTypeEnum.ENDDATE_ENTERPRISE_PLUS);
+                                    break;
+                                case 2:
+                                    CurrentEnterprise = "";
+                                    RefreshPage("", RefreshRecyclerTypeEnum.STARTDATE_PLUS);
+                                    //RefreshRecycler();
+                                    break;
+                            }
+                        }
+                    }
+                });
+        singleChoiceDialog.show();
+    }
+
+    private enum RefreshRecyclerTypeEnum{
+        STARTDATE_PLUS,STARTDATE_ENTERPRISE_PLUS,ENDDATE_PLUS,ENDDATE_ENTERPRISE_PLUS
+    }
+
+    private void RefreshPage(String EnterpriseStr, RefreshRecyclerTypeEnum typeEnum){
+        GetLicenseListFunction(EnterpriseStr, typeEnum);
+        RefreshRecyclerStandardFunction(EnterpriseStr, typeEnum);
+    }
+
+    private void GetLicenseListFunction(String EnterpriseStr, RefreshRecyclerTypeEnum typeEnum){
+        ShowedLicenseList = new ArrayList<license_test>();
+        AllLicenseList = new ArrayList<licenses>();
+        List<licenses> licensesList = new ArrayList<>();
+
+        if (typeEnum == RefreshRecyclerTypeEnum.STARTDATE_PLUS || typeEnum == RefreshRecyclerTypeEnum.ENDDATE_PLUS){
+            licensesList = LitePal.findAll(licenses.class);
+        }
+        else{
+            licensesList = LitePal.where("enterprise = ?", EnterpriseStr).find(licenses.class);
+        }
+        if (typeEnum == RefreshRecyclerTypeEnum.STARTDATE_PLUS || typeEnum == RefreshRecyclerTypeEnum.STARTDATE_ENTERPRISE_PLUS)
+        {
+            int len = licensesList.size();
+            for (int i = 0; i < len - 1; i++) {
+                for (int j = 0; j < len - 1 - i; j++) {
+                    if (Long.valueOf(ParseDate(licensesList.get(j).getStartDate())) > Long.valueOf(ParseDate(licensesList.get(j+1).getStartDate()))) {        // 相邻元素两两对比
+                        licenses temp = licensesList.get(j+1);        // 元素交换
+                        licensesList.set(j+1, licensesList.get(j));
+                        licensesList.set(j, temp);
+                    }
+                }
+            }
+        }
+        else if (typeEnum == RefreshRecyclerTypeEnum.ENDDATE_PLUS || typeEnum == RefreshRecyclerTypeEnum.ENDDATE_ENTERPRISE_PLUS)
+        {
+            int len = licensesList.size();
+            for (int i = 0; i < len - 1; i++) {
+                for (int j = 0; j < len - 1 - i; j++) {
+                    if (Long.valueOf(ParseDate(licensesList.get(j).getEndDate())) > Long.valueOf(ParseDate(licensesList.get(j+1).getEndDate()))) {        // 相邻元素两两对比
+                        licenses temp = licensesList.get(j+1);        // 元素交换
+                        licensesList.set(j+1, licensesList.get(j));
+                        licensesList.set(j, temp);
+                    }
+                }
+            }
+        }
+        AllLicenseList = licensesList;
+        int size = AllLicenseList.size();
+        List<license_test> GreenLicense = new ArrayList<>();
+        List<license_test> RedLicense = new ArrayList<>();
+        for (int i = 0; i < size; i++){
+            license_test licenseTest = new license_test(AllLicenseList.get(i).getImei(), AllLicenseList.get(i).getPassword(), AllLicenseList.get(i).getStartDate(), AllLicenseList.get(i).getEndDate(), AllLicenseList.get(i).getRegisterDate(), AllLicenseList.get(i).getEnterprise()
+                    , AllLicenseList.get(i).getName(), AllLicenseList.get(i).getSystemNum());
+            switch (DataUtil.verifyDate(AllLicenseList.get(i).getEndDate())){
+                case CONFIRM:
+                    GreenLicense.add(licenseTest);
+                    break;
+                case NOCONFIRM:
+                    RedLicense.add(licenseTest);
+                    break;
+                case ERROR:
+                    Toast.makeText(this, "发生错误, 请联系我们!", Toast.LENGTH_LONG).show();
+                    break;
+            }
+        }
+        ShowedLicenseList.addAll(GreenLicense);
+        ShowedLicenseList.addAll(RedLicense);
+        UpdateActionBarTipFunction(GreenLicense.size());
+    }
+
+    private void UpdateActionBarTipFunction(int OKNum){
+        getSupportActionBar().setTitle("共" + Integer.toString(ShowedLicenseList.size()) + "条, " + Integer.toString(OKNum) + "条有效");
+    }
+
+    private void RefreshRecyclerStandardFunction(final String EnterpriseStr, final RefreshRecyclerTypeEnum typeEnum){
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        layoutManager = new GridLayoutManager(this,1);
+        recyclerView.setLayoutManager(layoutManager);
+        adapter = new license_testAdapter(ShowedLicenseList);
+        adapter.setOnItemClickListener(new license_testAdapter.OnRecyclerItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                final license_test licenseTest = ShowedLicenseList.get(position);
+                final EditText editText = new EditText(License_show.this);
+                AlertDialog.Builder inputDialog =
+                        new AlertDialog.Builder(License_show.this);
+                inputDialog.setTitle("修改企业名").setView(editText);
+                editText.setText(licenseTest.getEnterprise().trim());
+                inputDialog.setPositiveButton("确定",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                licenses licenses = new licenses();
+                                licenses.setEnterprise(editText.getText().toString());
+                                licenses.updateAll("imei = ?", licenseTest.getImei());
+                                RefreshPage(EnterpriseStr, typeEnum);
+                            }
+                        }).show();
+            }
+        });
+        adapter.setOnItemLongClickListener(new license_testAdapter.OnRecyclerItemLongListener() {
+            @Override
+            public void onItemLongClick(View view, int position) {
+                final license_test licenseTest = ShowedLicenseList.get(position);
+                final EditText editText = new EditText(License_show.this);
+                AlertDialog.Builder inputDialog =
+                        new AlertDialog.Builder(License_show.this);
+                inputDialog.setTitle("修改姓名").setView(editText);
+                editText.setText(licenseTest.getName().trim());
+                inputDialog.setPositiveButton("确定",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                licenses licenses = new licenses();
+                                licenses.setName(editText.getText().toString());
+                                licenses.updateAll("imei = ?", licenseTest.getImei());
+                                RefreshPage(EnterpriseStr, typeEnum);
+                            }
+                        }).show();
+            }
+        });
+        recyclerView.setAdapter(adapter);
+    }
+
+    /*private void RefreshRecycler1(){
         license_tests = new ArrayList<license_test>();
         lists = new ArrayList<licenses>();
         lists = LitePal.findAll(licenses.class);
@@ -205,7 +457,7 @@ public class License_show extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 licenses licenses = new licenses();
-                                licenses.setEnterprise(editText.getText().toString());
+                                licenses.setName(editText.getText().toString());
                                 licenses.updateAll("imei = ?", licenseTest.getImei());
                                 RefreshRecycler();
                             }
@@ -215,7 +467,7 @@ public class License_show extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
-    private void RefreshRecycler(final String enterprise){
+    private void RefreshRecycler1(final String enterprise){
         license_tests = new ArrayList<license_test>();
         lists = new ArrayList<licenses>();
         lists = LitePal.findAll(licenses.class);
@@ -277,7 +529,7 @@ public class License_show extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 licenses licenses = new licenses();
-                                licenses.setEnterprise(editText.getText().toString());
+                                licenses.setName(editText.getText().toString());
                                 licenses.updateAll("imei = ?", licenseTest.getImei());
                                 RefreshRecycler(enterprise);
                             }
@@ -287,148 +539,7 @@ public class License_show extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
-    private boolean verifyDate(String endDate){
-        SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日");
-        Date nowDate = new Date(System.currentTimeMillis());
-        Date endTimeDate = null;
-        try {
-            if (!endDate.isEmpty()){
-                endTimeDate = df.parse(endDate);
-            }
-        }catch (ParseException e){
-            Toast.makeText(this, "发生错误, 请联系我们!", Toast.LENGTH_LONG).show();
-        }
-        if (nowDate.getTime() > endTimeDate.getTime()){
-            return false;
-        }else return true;
-    }
-
-    String CurrentEnterprise = "";
-    boolean isSpecificEnterpriseStatue = false;
-    int yourChoice;
-    private void showStandardChoiceDialog(){
-        final String[] items = { "开始时间排序","到期时间排序","只看某单位" };
-        yourChoice = 0;
-        AlertDialog.Builder singleChoiceDialog =
-                new AlertDialog.Builder(License_show.this);
-        singleChoiceDialog.setTitle("筛选排序");
-        // 第二个参数是默认选项，此处设置为0
-        singleChoiceDialog.setSingleChoiceItems(items, 0,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        yourChoice = which;
-                    }
-                });
-        singleChoiceDialog.setPositiveButton("确定",
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (yourChoice != -1) {
-                            /*Toast.makeText(License_show.this,
-                                    "你选择了" + items[yourChoice],
-                                    Toast.LENGTH_SHORT).show();*/
-                            switch (yourChoice){
-                                case 0:
-                                    RefreshRecyclerForStartDate();
-                                    break;
-                                case 1:
-                                    RefreshRecyclerForEndDate();
-                                    break;
-                                case 2:
-                                    ShowEnterpriseChoiceDialog();
-                                    break;
-                            }
-                        }
-                    }
-                });
-        singleChoiceDialog.show();
-    }
-
-    private void ShowEnterpriseChoiceDialog(){
-        HashMap<String, String> hashMap = new HashMap<>();
-        List<licenses> licensesList = LitePal.findAll(licenses.class);
-        for (int i = 0; i < licensesList.size(); i++) {
-            String enterprise = licensesList.get(i).getEnterprise();
-            if (!hashMap.containsKey(enterprise))
-                hashMap.put(enterprise, "");
-        }
-        final String[] items = new String[hashMap.size()];
-        Iterator iter = hashMap.entrySet().iterator();
-        int i = 0;
-        while (iter.hasNext()) {
-            Map.Entry entry = (Map.Entry) iter.next();
-            Object key = entry.getKey();
-            items[i++] = (String) key;
-        }
-        yourChoice = 0;
-        AlertDialog.Builder singleChoiceDialog =
-                new AlertDialog.Builder(License_show.this);
-        singleChoiceDialog.setTitle("筛选排序");
-        // 第二个参数是默认选项，此处设置为0
-        singleChoiceDialog.setSingleChoiceItems(items, 0,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        yourChoice = which;
-                    }
-                });
-        singleChoiceDialog.setPositiveButton("确定",
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (yourChoice != -1) {
-                            isSpecificEnterpriseStatue = true;
-                            CurrentEnterprise = items[yourChoice];
-                            RefreshRecycler(items[yourChoice]);
-                        }
-                    }
-                });
-        singleChoiceDialog.show();
-    }
-
-    private void showFilteredChoiceDialog(){
-        final String[] items = { "开始时间排序","到期时间排序","查看所有"};
-        yourChoice = 0;
-        AlertDialog.Builder singleChoiceDialog =
-                new AlertDialog.Builder(License_show.this);
-        singleChoiceDialog.setTitle("筛选排序");
-        // 第二个参数是默认选项，此处设置为0
-        singleChoiceDialog.setSingleChoiceItems(items, 0,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        yourChoice = which;
-                    }
-                });
-        singleChoiceDialog.setPositiveButton("确定",
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (yourChoice != -1) {
-                            /*Toast.makeText(License_show.this,
-                                    "你选择了" + items[yourChoice],
-                                    Toast.LENGTH_SHORT).show();*/
-                            switch (yourChoice){
-                                case 0:
-                                    RefreshRecyclerForStartDate(CurrentEnterprise);
-                                    break;
-                                case 1:
-                                    RefreshRecyclerForEndDate(CurrentEnterprise);
-                                    break;
-                                case 2:
-                                    CurrentEnterprise = "";
-                                    isSpecificEnterpriseStatue = false;
-                                    RefreshRecycler();
-                                    break;
-                            }
-                        }
-                    }
-                });
-        singleChoiceDialog.show();
-    }
-
-    private void RefreshRecyclerForStartDate(final String enterpriseStr){
+    private void RefreshRecyclerForStartDate1(final String enterpriseStr){
         final List<licenses> licensesList = LitePal.where("enterprise = ?", enterpriseStr).find(licenses.class);
 
         int len = licensesList.size();
@@ -503,7 +614,7 @@ public class License_show extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 licenses licenses = new licenses();
-                                licenses.setEnterprise(editText.getText().toString());
+                                licenses.setName(editText.getText().toString());
                                 licenses.updateAll("imei = ?", licenseTest.getImei());
                                 RefreshRecyclerForStartDate(enterpriseStr);
                             }
@@ -513,7 +624,7 @@ public class License_show extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
-    private void RefreshRecyclerForEndDate(final String enterpriseStr){
+    private void RefreshRecyclerForEndDate1(final String enterpriseStr){
         List<licenses> licensesList = LitePal.where("enterprise = ?", enterpriseStr).find(licenses.class);
 
         int len = licensesList.size();
@@ -588,7 +699,7 @@ public class License_show extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 licenses licenses = new licenses();
-                                licenses.setEnterprise(editText.getText().toString());
+                                licenses.setName(editText.getText().toString());
                                 licenses.updateAll("imei = ?", licenseTest.getImei());
                                 RefreshRecyclerForEndDate(enterpriseStr);
                             }
@@ -598,7 +709,7 @@ public class License_show extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
-    private void RefreshRecyclerForStartDate(){
+    private void RefreshRecyclerForStartDate1(){
         List<licenses> licensesList = LitePal.findAll(licenses.class);
 
         int len = licensesList.size();
@@ -673,7 +784,7 @@ public class License_show extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 licenses licenses = new licenses();
-                                licenses.setEnterprise(editText.getText().toString());
+                                licenses.setName(editText.getText().toString());
                                 licenses.updateAll("imei = ?", licenseTest.getImei());
                                 RefreshRecyclerForStartDate();
                             }
@@ -683,7 +794,7 @@ public class License_show extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
-    private void RefreshRecyclerForEndDate(){
+    private void RefreshRecyclerForEndDate1(){
         List<licenses> licensesList = LitePal.findAll(licenses.class);
 
         int len = licensesList.size();
@@ -758,7 +869,7 @@ public class License_show extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 licenses licenses = new licenses();
-                                licenses.setEnterprise(editText.getText().toString());
+                                licenses.setName(editText.getText().toString());
                                 licenses.updateAll("imei = ?", licenseTest.getImei());
                                 RefreshRecyclerForEndDate();
                             }
@@ -766,7 +877,7 @@ public class License_show extends AppCompatActivity {
             }
         });
         recyclerView.setAdapter(adapter);
-    }
+    }*/
 
     /*private long ParseDate(String Date){
         Date = Date.replace('年', Character.MIN_VALUE);

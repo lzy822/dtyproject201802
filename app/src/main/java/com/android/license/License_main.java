@@ -47,127 +47,6 @@ public class License_main extends AppCompatActivity {
     int deltaTime;
     private static final String TAG = "License_main";
 
-    //计算识别码
-    private String getPassword1(String deviceId){
-        //String password;
-        //password = "l" + encryption(deviceId) + "ZY";
-        SimpleDateFormat df = new SimpleDateFormat(MyApplication.getContext().getResources().getText(R.string.Date_1).toString());
-        Date nowDate = new Date(System.currentTimeMillis());
-        return encryption(deviceId) + encryption1(df.format(nowDate));
-    }
-    //计算识别码
-    private String getPassword1ForAndroid10(String deviceId){
-        //String password;
-        //password = "l" + encryption(deviceId) + "ZY";
-        SimpleDateFormat df = new SimpleDateFormat(MyApplication.getContext().getResources().getText(R.string.Date_1).toString());
-        Date nowDate = new Date(System.currentTimeMillis());
-        return encryptionForAndroid10(deviceId) + encryption1(df.format(nowDate));
-    }
-
-    private String getDeltaDate(String password){
-        if (deltaTime == 7){
-            password = password + "x";
-        }else if (deltaTime == 180){
-            password = password + "X";
-        }else if (deltaTime == 366){
-            password = password + "y";
-        }else if (deltaTime == 30){
-            password = password + "g";
-        }else if (deltaTime == 90){
-            password = password + "G";
-        }else if (deltaTime == 3660){
-            password = password + "j";
-        }
-        return password;
-    }
-
-    //编码
-    private String encryptionForAndroid10(String password){
-        Log.w(TAG, "startDate: " + password );
-        password = password.replace("0", "q");
-        password = password.replace("1", "R");
-        password = password.replace("2", "V");
-        password = password.replace("3", "z");
-        password = password.replace("4", "T");
-        password = password.replace("5", "b");
-        password = password.replace("6", "L");
-        password = password.replace("7", "s");
-        password = password.replace("8", "W");
-        password = password.replace("9", "F");
-        password = password.replace("a", "d");
-        password = password.replace("b", "o");
-        password = password.replace("c", "O");
-        password = password.replace("d", "n");
-        password = password.replace("e", "v");
-        password = password.replace("f", "C");
-
-        return password;
-    }
-
-    //编码
-    private String encryption(String password){
-        Log.w(TAG, "startDate: " + password );
-        password = password.replace("0", "q");
-        password = password.replace("1", "R");
-        password = password.replace("2", "V");
-        password = password.replace("3", "z");
-        password = password.replace("4", "T");
-        password = password.replace("5", "b");
-        password = password.replace("6", "L");
-        password = password.replace("7", "s");
-        password = password.replace("8", "W");
-        password = password.replace("9", "F");
-        password = password.replace("A", "d");
-        password = password.replace("B", "o");
-        password = password.replace("C", "O");
-        password = password.replace("D", "n");
-        password = password.replace("E", "v");
-        password = password.replace("F", "C");
-
-        return password;
-    }
-
-    //编码
-    private String encryption1(String password){
-        password = password.replace("0", "a");
-        password = password.replace("1", "Z");
-        password = password.replace("2", "o");
-        password = password.replace("3", "M");
-        password = password.replace("4", "e");
-        password = password.replace("5", "w");
-        password = password.replace("6", "z");
-        password = password.replace("7", "R");
-        password = password.replace("8", "D");
-        password = password.replace("9", "q");
-        return password;
-    }
-
-    //反转授权码
-    private String reverseStr(String str){
-        return str.substring(6, 10) + str.substring(0, 6) + str.substring(10);
-    }
-
-    //恢复反转授权码
-    private String reReverseStr(String str){
-        return str.substring(4,10) + str.substring(0, 4) + str.substring(10);
-    }
-
-    //日期提取算法
-    private String getDateFromStr(String password){
-        password = password.replace("a", "0");
-        password = password.replace("Z", "1");
-        password = password.replace("o", "2");
-        password = password.replace("M", "3");
-        password = password.replace("e", "4");
-        password = password.replace("w", "5");
-        password = password.replace("z", "6");
-        password = password.replace("R", "7");
-        password = password.replace("D", "8");
-        password = password.replace("q", "9");
-        password = password.substring(0, 4) + "年" + password.substring(4, 6) + "月" + password.substring(6) + "日";
-        return password;
-    }
-
     //请求授权
     private void requestAuthority(){
         List<String> permissionList = new ArrayList<>();
@@ -387,7 +266,7 @@ public class License_main extends AppCompatActivity {
     }
 
     private void ManageOtherSystemPassword(String str) {
-        password = encryption(str);
+        password = PasswordUtil.encryption(str);
         textView.setText("授权码为: " + password + "(长按复制)");
         Toast.makeText(License_main.this, "该设备码与时限无关", Toast.LENGTH_LONG).show();
     }
@@ -395,7 +274,7 @@ public class License_main extends AppCompatActivity {
     private String GetOldVersionPassword(String str){
         String password = "";
         try {
-            password = getDeltaDate(reverseStr(getPassword1(str.substring(str.length() - 6))));
+            password = PasswordUtil.getDeltaDate(PasswordUtil.reverseStr(PasswordUtil.getPassword1(str.substring(str.length() - 6))), deltaTime);
         }catch (Exception e){
             Toast.makeText(License_main.this, "获取老版本验证码出错。可能是对方机器获取了假的验证码，请获取对方设备的硬件型号和软件版本号", Toast.LENGTH_LONG).show();
         }
@@ -405,7 +284,7 @@ public class License_main extends AppCompatActivity {
     private String GetAndroid10Password(String str) {
         String password = "";
         try {
-            password = getDeltaDate(reverseStr(getPassword1ForAndroid10(str.substring(str.length() - 6))));
+            password = PasswordUtil.getDeltaDate(PasswordUtil.reverseStr(PasswordUtil.getPassword1ForAndroid10(str.substring(str.length() - 6))), deltaTime);
         }catch (Exception e){
             Toast.makeText(License_main.this, "获取安卓10验证码出错。可能是对方机器获取了假的验证码，请获取对方设备的硬件型号和软件版本号", Toast.LENGTH_LONG).show();
         }
@@ -449,7 +328,7 @@ public class License_main extends AppCompatActivity {
 
         try {
             for (int i = 0; i < pp.size; i++){
-                if (pp.str.contentEquals(pp.lsts.get(i).getImei()) & verifyDate(pp.lsts.get(i).getEndDate())){
+                if (pp.str.contentEquals(pp.lsts.get(i).getImei()) && (DataUtil.verifyDate(pp.lsts.get(i).getEndDate()) == DataUtil.VerifyDateEnum.CONFIRM)){
                     isExist = true;
                     password = pp.lsts.get(i).getPassword();
                     break;
@@ -474,7 +353,7 @@ public class License_main extends AppCompatActivity {
         license.setPassword(password);
         license.setRegisterDate(pp.time);
         license.setStartDate(pp.startTime);
-        license.setEndDate(datePlus(pp.startTime, deltaTime));
+        license.setEndDate(DataUtil.datePlus(pp.startTime, deltaTime));
         license.setSystemNum(0);
         license.setEnterprise(EnterpriseStr);
         license.setName(NameStr);
@@ -500,7 +379,7 @@ public class License_main extends AppCompatActivity {
         license.setPassword(password);
         license.setRegisterDate(pp.time);
         license.setStartDate(pp.startTime);
-        license.setEndDate(datePlus(pp.startTime, deltaTime));
+        license.setEndDate(DataUtil.datePlus(pp.startTime, deltaTime));
         license.setSystemNum(1);
             /*if (deltaTime == 7){
                 license.setEndDate(datePlus(pp.startTime, 7));
@@ -516,38 +395,6 @@ public class License_main extends AppCompatActivity {
                 license.setEndDate(datePlus(pp.startTime, 3660));
             }*/
         license.save();
-    }
-
-    //Day:日期字符串例如 2015-3-10  Num:需要减少的天数例如 7
-    public static String getDateStr(String day,int Num) {
-        SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日");
-        Date nowDate = null;
-        try {
-            nowDate = df.parse(day);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        //如果需要向后计算日期 -改为+
-        Date newDate2 = new Date(nowDate.getTime() + (long)(Num * 24 * 60 * 60 * 1000));
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日");
-        String dateOk = simpleDateFormat.format(newDate2);
-        return dateOk;
-    }
-
-    public static String datePlus(String day, int days) {
-        SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日");
-        Date base = null;
-        try {
-            base = df.parse(day);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(base);
-        cal.add(Calendar.DATE, days);
-        String dateOK = df.format(cal.getTime());
-
-        return dateOK;
     }
 
     @Override
@@ -569,22 +416,5 @@ public class License_main extends AppCompatActivity {
                 break;
         }
         return true;
-    }
-
-    //核对当前日期
-    private boolean verifyDate(String endDate){
-        SimpleDateFormat df = new SimpleDateFormat("yyyy年MM月dd日");
-        Date nowDate = new Date(System.currentTimeMillis());
-        Date endTimeDate = null;
-        try {
-            if (!endDate.isEmpty()){
-                endTimeDate = df.parse(endDate);
-            }
-        }catch (ParseException e){
-            Toast.makeText(this, "发生错误, 请联系我们!", Toast.LENGTH_LONG).show();
-        }
-        if (nowDate.getTime() > endTimeDate.getTime()){
-            return false;
-        }else return true;
     }
 }

@@ -121,12 +121,24 @@ public class license_testAdapter extends RecyclerView.Adapter<license_testAdapte
             case 1:
                 SystemStr="Windows";
                 break;
+                default:
+                    SystemStr="无";
+                    break;
         }
-        String str = "企业名: " + license.getEnterprise() + "\n" + "用户名: " + license.getName() + "\n" +  "系统号: " + SystemStr + "\n" +  "设备码: " + license.getImei() + "\n" + "授权码: " + license.getPassword() + "\n" + "授权时间: " + license.getRegisterDate()
+
+        String EnterpriseStr = license.getEnterprise();
+        String NameStr = license.getName();
+        if (EnterpriseStr == null)
+            EnterpriseStr = "无";
+        if (NameStr == null)
+            NameStr = "无";
+
+        String str = "企业名: " + EnterpriseStr + "\n" + "用户名: " + NameStr + "\n" +  "系统号: " + SystemStr + "\n" +  "设备码: " + license.getImei() + "\n" + "授权码: " + license.getPassword() + "\n" + "授权时间: " + license.getRegisterDate()
                 + "\n" + "开始时间: " + license.getStartDate() + "\n" + "结束时间: " + license.getEndDate();
-        if (verifyDate(license.getEndDate())){
+        if (verifyDate(license.getEndDate()))
             holder.cardView.setCardBackgroundColor(Color.GREEN);
-        }else holder.cardView.setCardBackgroundColor(Color.RED);
+        else
+            holder.cardView.setCardBackgroundColor(Color.RED);
         holder.licenseTxt.setText(str);
 
 
